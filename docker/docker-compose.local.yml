@@ -1,0 +1,57 @@
+# Local Development Docker Configuration
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: ../..
+      dockerfile: docker/Dockerfile.web
+    container_name: aitriplan-web-local
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/aitriplan
+      - NEXTAUTH_SECRET=your-local-secret-key-for-testing
+      - NEXTAUTH_URL=http://localhost:3000
+      - KIMI_API_KEY=${KIMI_API_KEY:-}
+      - AMAP_KEY=${AMAP_KEY:-}
+    volumes:
+      - ../apps/web:/app
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      - db
+    command: npm run dev
+    networks:
+      - aitriplan-local
+
+  db:
+    image: postgres:16-alpine
+    container_name: aitriplan-db-local
+    environment:
+      - POSTGRES_DB=aitriplan
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - aitriplan-local
+
+  # Optional: Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: aitriplan-redis-local
+    ports:
+      - "6379:6379"
+    networks:
+      - aitriplan-local
+
+volumes:
+  postgres_data:
+
+networks:
+  aitriplan-local:
+    driver: bridge
