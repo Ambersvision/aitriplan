@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   try {
     const checkIns = await getCheckInsByTrip(tripId, session.user.id)
     return NextResponse.json(checkIns)
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to fetch check-ins' },
       { status: 500 }
@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     })
 
     return NextResponse.json(checkIn, { status: 201 })
-  } catch (error) {
+  } catch {
     console.error('Create check-in error:', error)
     return NextResponse.json(
       { error: 'Failed to create check-in' },

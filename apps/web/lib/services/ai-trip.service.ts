@@ -2,6 +2,9 @@ import { prisma } from '@/lib/prisma'
 import { AIProviderFactory } from '@/lib/ai/factory'
 import { TripPlanParams } from '@/lib/ai/types'
 
+// TransportMode enum values from Prisma schema
+type TransportMode = 'PLANE' | 'TRAIN' | 'HIGH_SPEED_RAIL' | 'BUS' | 'SUBWAY' | 'TAXI' | 'RIDE_HAILING' | 'WALK' | 'DRIVE' | 'SHIP' | 'FERRY' | 'BIKE'
+
 export async function generateTripPlanWithAI(
   tripId: string,
   userId: string,
@@ -18,7 +21,7 @@ export async function generateTripPlanWithAI(
   const provider = AIProviderFactory.getProvider()
   const plan = await provider.generateTripPlan(params)
 
-  return prisma.$transaction(async (tx) => {
+  return prisma.$transaction(async (tx: typeof prisma) => {
     await tx.destination.deleteMany({ where: { tripId } })
     await tx.itineraryItem.deleteMany({ where: { tripId } })
 
@@ -50,7 +53,7 @@ export async function generateTripPlanWithAI(
             duration: item.duration,
             fromLocation: item.fromLocation,
             toLocation: item.toLocation,
-            transportMode: item.transportMode as any,
+            transportMode: item.transportMode as TransportMode | undefined,
             transportCost: item.transportCost,
             ticketCost: item.ticketCost,
             otherCost: item.otherCost,

@@ -45,8 +45,17 @@ export interface TripPlanParams {
   }
 }
 
+export interface FoodRecommendation {
+  name: string
+  type: string
+  specialty: string
+  priceRange: string
+  bestTime: string
+  tips: string
+}
+
 export interface AIProvider {
   generateTripPlan(params: TripPlanParams): Promise<AITripPlan>
-  generateFoodRecommendations(location: Location, count?: number): Promise<any[]>
+  generateFoodRecommendations(location: Location, count?: number): Promise<FoodRecommendation[]>
   streamResponse(prompt: string): AsyncIterable<string>
 }

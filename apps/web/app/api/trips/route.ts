@@ -13,7 +13,7 @@ export async function GET() {
   try {
     const trips = await getTripsByUser(session.user.id)
     return NextResponse.json(trips)
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to fetch trips' },
       { status: 500 }
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
     })
 
     return NextResponse.json(trip, { status: 201 })
-  } catch (error) {
+  } catch {
     console.error('Create trip error:', error)
     return NextResponse.json(
       { error: 'Failed to create trip' },

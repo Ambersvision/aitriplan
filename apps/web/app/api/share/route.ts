@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       token: share.token,
       url: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/share/${share.token}`
     })
-  } catch (error) {
+  } catch {
     console.error('Create share error:', error)
     return NextResponse.json(
       { error: 'Failed to create share link' },

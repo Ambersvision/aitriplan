@@ -1,5 +1,22 @@
 import { MapProvider, GeoLocation, Address, POI, Route, TransportMode } from '../types'
 
+interface AMapPOIItem {
+  id: string
+  name: string
+  address?: string
+  location?: string
+  type: string
+  distance?: string
+}
+
+interface AMapRouteStep {
+  instruction: string
+  distance: string
+  duration: string
+  start_location: string
+  end_location: string
+}
+
 export class AMapProvider implements MapProvider {
   name = 'amap'
   private apiKey: string
@@ -26,7 +43,7 @@ export class AMapProvider implements MapProvider {
         }
       }
       return null
-    } catch (error) {
+    } catch {
       console.error('AMap geocode error:', error)
       return null
     }
@@ -51,7 +68,7 @@ export class AMapProvider implements MapProvider {
         }
       }
       return null
-    } catch (error) {
+    } catch {
       console.error('AMap reverse geocode error:', error)
       return null
     }
@@ -73,7 +90,7 @@ export class AMapProvider implements MapProvider {
       const data = await response.json()
       
       if (data.status === '1' && data.pois) {
-        return data.pois.map((poi: any) => {
+        return data.pois.map((poi: AMapPOIItem) => {
           const loc = poi.location?.split(',')
           return {
             id: poi.id,
@@ -89,7 +106,7 @@ export class AMapProvider implements MapProvider {
         })
       }
       return []
-    } catch (error) {
+    } catch {
       console.error('AMap POI search error:', error)
       return []
     }
@@ -127,7 +144,7 @@ export class AMapProvider implements MapProvider {
         return {
           distance: parseInt(path.distance),
           duration: parseInt(path.duration),
-          steps: path.steps?.map((step: any) => ({
+          steps: path.steps?.map((step: AMapRouteStep) => ({
             instruction: step.instruction,
             distance: parseInt(step.distance),
             duration: parseInt(step.duration),
@@ -138,7 +155,7 @@ export class AMapProvider implements MapProvider {
         }
       }
       return null
-    } catch (error) {
+    } catch {
       console.error('AMap route error:', error)
       return null
     }

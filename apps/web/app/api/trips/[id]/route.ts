@@ -21,7 +21,7 @@ export async function GET(
     }
 
     return NextResponse.json(trip)
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to fetch trip' },
       { status: 500 }
@@ -42,7 +42,15 @@ export async function PUT(
   try {
     const body = await req.json()
     
-    const updateData: any = {}
+    interface UpdateData {
+      title?: string
+      description?: string
+      startDate?: Date
+      endDate?: Date
+      status?: string
+    }
+    
+    const updateData: UpdateData = {}
     if (body.title) updateData.title = body.title
     if (body.description !== undefined) updateData.description = body.description
     if (body.startDate) updateData.startDate = new Date(body.startDate)
@@ -56,7 +64,7 @@ export async function PUT(
     }
 
     return NextResponse.json({ message: 'Trip updated' })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to update trip' },
       { status: 500 }
@@ -76,13 +84,13 @@ export async function DELETE(
 
   try {
     const result = await deleteTrip(params.id, session.user.id)
-    
+
     if (result.count === 0) {
       return NextResponse.json({ error: 'Trip not found' }, { status: 404 })
     }
 
     return NextResponse.json({ message: 'Trip deleted' })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Failed to delete trip' },
       { status: 500 }

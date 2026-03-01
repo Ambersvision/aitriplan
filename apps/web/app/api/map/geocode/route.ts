@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   try {
     const location = await MapService.geocode(address)
     return NextResponse.json({ location })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Geocoding failed' },
       { status: 500 }

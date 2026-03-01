@@ -30,7 +30,7 @@ export class AIProviderFactory {
     for (const type of types) {
       try {
         providers.push(this.getProvider(type))
-      } catch (error) {
+      } catch {
         console.warn(`Failed to initialize ${type} provider`)
       }
     }
