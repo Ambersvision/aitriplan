@@ -1,0 +1,224 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  accounts Account[]
+  sessions Session[]
+  trips    Trip[]
+  checkIns CheckIn[]
+  comments Comment[]
+
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+enum TripStatus {
+  PLANNING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum ItemType {
+  TRANSPORT
+  ATTRACTION
+  FOOD
+  ACCOMMODATION
+  ACTIVITY
+  FREE_TIME
+}
+
+enum TransportMode {
+  PLANE
+  TRAIN
+  HIGH_SPEED_RAIL
+  BUS
+  SUBWAY
+  TAXI
+  RIDE_HAILING
+  WALK
+  DRIVE
+  SHIP
+  FERRY
+  BIKE
+}
+
+model Trip {
+  id          String      @id @default(cuid())
+  userId      String      @map("user_id")
+  title       String
+  description String?
+  startDate   DateTime    @map("start_date")
+  endDate     DateTime    @map("end_date")
+  status      TripStatus  @default(PLANNING)
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  destinations Destination[]
+  items       ItineraryItem[]
+  checkIns    CheckIn[]
+
+  @@index([userId])
+  @@index([userId, status])
+  @@map("trips")
+}
+
+model Destination {
+  id          String   @id @default(cuid())
+  tripId      String   @map("trip_id")
+  name        String
+  order       Int
+  latitude    Float
+  longitude   Float
+  address     String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  items       ItineraryItem[]
+
+  @@unique([tripId, order])
+  @@index([tripId])
+  @@map("destinations")
+}
+
+model ItineraryItem {
+  id              String         @id @default(cuid())
+  tripId          String         @map("trip_id")
+  destinationId   String?        @map("destination_id")
+  type            ItemType
+  title           String
+  description     String?        @db.Text
+  startTime       DateTime       @map("start_time")
+  endTime         DateTime       @map("end_time")
+  duration        Int            // minutes
+  fromLocation    Json?          @map("from_location")
+  toLocation      Json?          @map("to_location")
+  transportMode   TransportMode? @map("transport_mode")
+  transportCost   Decimal?       @map("transport_cost") @db.Decimal(10, 2)
+  ticketCost      Decimal?       @map("ticket_cost") @db.Decimal(10, 2)
+  otherCost       Decimal?       @map("other_cost") @db.Decimal(10, 2)
+  order           Int
+  isAiGenerated   Boolean        @default(false) @map("is_ai_generated")
+  createdAt       DateTime       @default(now()) @map("created_at")
+  updatedAt       DateTime       @updatedAt @map("updated_at")
+
+  trip            Trip           @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  destination     Destination?   @relation(fields: [destinationId], references: [id])
+
+  @@index([tripId, startTime])
+  @@index([tripId, order])
+  @@map("itinerary_items")
+}
+
+model CheckIn {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  tripId      String    @map("trip_id")
+  latitude    Float
+  longitude   Float
+  address     String?
+  content     String    @db.Text
+  photos      String[]  // Array of URLs
+  videos      String[]  // Array of URLs
+  tags        String[]
+  likes       Int       @default(0)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trip        Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  comments    Comment[]
+  shareLinks  ShareLink[]
+
+  @@index([userId])
+  @@index([tripId])
+  @@index([createdAt])
+  @@map("check_ins")
+}
+
+model Comment {
+  id          String    @id @default(cuid())
+  checkInId   String    @map("check_in_id")
+  userId      String?   @map("user_id") // null for anonymous
+  userName    String?   @map("user_name") // for anonymous comments
+  content     String    @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  checkIn     CheckIn   @relation(fields: [checkInId], references: [id], onDelete: Cascade)
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([checkInId])
+  @@index([createdAt])
+  @@map("comments")
+}
+
+model ShareLink {
+  id          String    @id @default(cuid())
+  checkInId   String    @map("check_in_id")
+  token       String    @unique
+  expiresAt   DateTime? @map("expires_at")
+  isActive    Boolean   @default(true)
+  views       Int       @default(0)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  checkIn     CheckIn   @relation(fields: [checkInId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([checkInId])
+  @@map("share_links")
+}
