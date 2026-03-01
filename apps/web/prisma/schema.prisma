@@ -7,7 +7,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model Account {
@@ -112,6 +111,7 @@ model Trip {
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   destinations Destination[]
   items       ItineraryItem[]
+  checkIns    CheckIn[]
 
   @@index([userId])
   @@index([userId, status])
@@ -163,4 +163,62 @@ model ItineraryItem {
   @@index([tripId, startTime])
   @@index([tripId, order])
   @@map("itinerary_items")
+}
+
+model CheckIn {
+  id          String    @id @default(cuid())
+  userId      String    @map("user_id")
+  tripId      String    @map("trip_id")
+  latitude    Float
+  longitude   Float
+  address     String?
+  content     String    @db.Text
+  photos      String[]  // Array of URLs
+  videos      String[]  // Array of URLs
+  tags        String[]
+  likes       Int       @default(0)
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trip        Trip      @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  comments    Comment[]
+  shareLinks  ShareLink[]
+
+  @@index([userId])
+  @@index([tripId])
+  @@index([createdAt])
+  @@map("check_ins")
+}
+
+model Comment {
+  id          String    @id @default(cuid())
+  checkInId   String    @map("check_in_id")
+  userId      String?   @map("user_id") // null for anonymous
+  userName    String?   @map("user_name") // for anonymous comments
+  content     String    @db.Text
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  checkIn     CheckIn   @relation(fields: [checkInId], references: [id], onDelete: Cascade)
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([checkInId])
+  @@index([createdAt])
+  @@map("comments")
+}
+
+model ShareLink {
+  id          String    @id @default(cuid())
+  checkInId   String    @map("check_in_id")
+  token       String    @unique
+  expiresAt   DateTime? @map("expires_at")
+  isActive    Boolean   @default(true)
+  views       Int       @default(0)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  checkIn     CheckIn   @relation(fields: [checkInId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([checkInId])
+  @@map("share_links")
 }
