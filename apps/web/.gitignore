@@ -1,3 +1,5 @@
 .env.local
 .env.*.local
 uploads/
+
+/app/generated/prisma
