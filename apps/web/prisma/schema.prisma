@@ -51,6 +51,9 @@ model User {
 
   accounts Account[]
   sessions Session[]
+  trips    Trip[]
+  checkIns CheckIn[]
+  comments Comment[]
 
   @@map("users")
 }
@@ -62,4 +65,73 @@ model VerificationToken {
 
   @@unique([identifier, token])
   @@map("verificationtokens")
+}
+
+enum TripStatus {
+  PLANNING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
+
+enum ItemType {
+  TRANSPORT
+  ATTRACTION
+  FOOD
+  ACCOMMODATION
+  ACTIVITY
+  FREE_TIME
+}
+
+enum TransportMode {
+  PLANE
+  TRAIN
+  HIGH_SPEED_RAIL
+  BUS
+  SUBWAY
+  TAXI
+  RIDE_HAILING
+  WALK
+  DRIVE
+  SHIP
+  FERRY
+  BIKE
+}
+
+model Trip {
+  id          String      @id @default(cuid())
+  userId      String      @map("user_id")
+  title       String
+  description String?
+  startDate   DateTime    @map("start_date")
+  endDate     DateTime    @map("end_date")
+  status      TripStatus  @default(PLANNING)
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  destinations Destination[]
+  items       ItineraryItem[]
+
+  @@index([userId])
+  @@index([userId, status])
+  @@map("trips")
+}
+
+model Destination {
+  id          String   @id @default(cuid())
+  tripId      String   @map("trip_id")
+  name        String
+  order       Int
+  latitude    Float
+  longitude   Float
+  address     String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  trip        Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  items       ItineraryItem[]
+
+  @@unique([tripId, order])
+  @@index([tripId])
+  @@map("destinations")
 }
