@@ -1,5 +1,6 @@
 {
-  "name": "aitripplan",
+  "name": "aitriplan",
+  "displayName": "AITriplan",
   "version": "0.1.0",
   "private": true,
   "scripts": {
