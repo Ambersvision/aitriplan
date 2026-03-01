@@ -1,5 +1,5 @@
 import OpenAI from 'openai'
-import { AIProvider, TripPlanParams, AITripPlan, Location } from '../types'
+import { AIProvider, TripPlanParams, AITripPlan, Location, FoodRecommendation } from '../types'
 import { generateTripPlanPrompt } from '../prompts/trip.prompt'
 
 export class KimiProvider implements AIProvider {
@@ -39,7 +39,7 @@ export class KimiProvider implements AIProvider {
     try {
       const plan = JSON.parse(content) as AITripPlan
       return plan
-    } catch (error) {
+    } catch {
       throw new Error('Failed to parse AI response')
     }
   }
@@ -47,7 +47,7 @@ export class KimiProvider implements AIProvider {
   async generateFoodRecommendations(
     location: Location,
     count: number = 5
-  ): Promise<any[]> {
+  ): Promise<FoodRecommendation[]> {
     const prompt = `请为以下位置推荐${count}个当地特色美食和餐厅：
 
 位置：${location.name}

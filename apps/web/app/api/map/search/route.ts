@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   try {
     const pois = await MapService.searchPOI(keyword, location)
     return NextResponse.json({ pois })
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: 'Search failed' },
       { status: 500 }
