@@ -1,0 +1,20 @@
+# 本地开发快速启动
+# 先只启动数据库，本地运行 Next.js
+
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: aitriplan-db-local
+    environment:
+      - POSTGRES_DB=aitriplan
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5511:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
